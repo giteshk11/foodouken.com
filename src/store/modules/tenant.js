@@ -63,8 +63,7 @@ const state = {
   businessHours: [...defaultBusinessHours],
   page: 1,
   notificationTypes,
-  paymentMethods,
-  isActive: null
+  paymentMethods
 };
 
 const getters = {
@@ -94,9 +93,6 @@ const getters = {
   },
   getBusinessHours(state) {
     return state.businessHours;
-  },
-  getIsActive(state) {
-    return state.isActive;
   }
 };
 
@@ -128,7 +124,7 @@ const actions = {
     });
   },
   fetchUserTenants() {
-    let companySlug = process.env.VUE_APP_COMPANY_SLUG;
+    const companySlug = process.env.VUE_APP_COMPANY_SLUG;
     return new Promise((resolve, reject) => {
       httpClient.get(`/companies/${companySlug}/tenants/mytenants`).then(
         response => {
@@ -155,7 +151,7 @@ const actions = {
         );
     });
   },
-  changeActiveStatus({ commit }, payload) {
+  changeActiveStatus(context, payload) {
     let companySlug = process.env.VUE_APP_COMPANY_SLUG;
     return new Promise((resolve, reject) => {
       httpClient
@@ -164,7 +160,37 @@ const actions = {
         })
         .then(
           response => {
-            commit('updateIsActive', payload.isActive);
+            resolve(response.data);
+          },
+          error => {
+            reject(error);
+          }
+        );
+    });
+  },
+  fetchTenantDetails(conext, payload) {
+    const companySlug = process.env.VUE_APP_COMPANY_SLUG;
+    return new Promise((resolve, reject) => {
+      httpClient
+        .get(`/companies/${companySlug}/tenants/${payload.slug}`)
+        .then(response => {
+          resolve(response.data);
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  },
+  changePromotionStatus(context, payload) {
+    const companySlug = process.env.VUE_APP_COMPANY_SLUG;
+    return new Promise((resolve, reject) => {
+      httpClient
+        .patch(`/companies/${companySlug}/tenants/${payload.slug}`, {
+          hasPromotion: payload.hasPromotion,
+          promotionPercent: payload.promotionPercent
+        })
+        .then(
+          response => {
             resolve(response.data);
           },
           error => {
